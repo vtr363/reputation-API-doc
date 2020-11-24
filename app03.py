@@ -15,12 +15,19 @@ mb_user = "victor"
 pwd = "dacDxB0jv8uEvRxc"
 
 app = Flask(__name__)
-api = Api(app)
+
+api = Api(app, version='1.0', title='Reputation API', description = 'API: https://recomendation-api-cefet.herokuapp.com/')
 bootstrap = Bootstrap(app)
 app.config["SECRET_KEY"] = "STRINGHARDTOGUESS"
 
 client = pymongo.MongoClient("mongodb+srv://"+mb_user+":"+pwd+"@cluster0.d1wep.gcp.mongodb.net/RecDB?retryWrites=true&w=majority")
 db = client.RecDB
+
+
+
+
+
+ns = api.namespace('', description='Endpoints')
 
 #models
 makeEvaluation = api.model('makeEvaluation',{"user_id":fields.String("5fb99c9970765b0beebd6a25"),
@@ -41,7 +48,7 @@ ManageColaborators = api.model('ManageColaborators', {"key":fields.String('gener
 
 
 
-@api.route('/makeEvaluation', doc = {"description": 'Create or update an Evaluation',
+@ns.route('/makeEvaluation', doc = {"description": 'Create or update an Evaluation',
 									"params": {"user_id": "the id of the user that is Evaluating \n Ex: 5fb99c9970765b0beebd6a25 ",
 												"colaborator_id": "the id of the colaborator who is being Evaluated \n Ex: 5fb99c9a70765b0beebd6a26",
 												"key": "the key of the application \n Ex: genericKey",
@@ -50,7 +57,7 @@ ManageColaborators = api.model('ManageColaborators', {"key":fields.String('gener
 												"questions": "the questions of the aplication"}})
 class makeEvaluation(Resource):
 
-	@api.expect(makeEvaluation)
+	@ns.expect(makeEvaluation)
 	def post(self):	
 		if request.content_type != "application/json":
 			return "Bad Request. Content Type must be application/json", 400
@@ -104,11 +111,11 @@ class makeEvaluation(Resource):
 											   "questions":_questions})
 			return "Evaluation created succesfully",201
 
-@api.route('/evaluationByApp', doc = {"description": "Gets all the evaluations of a colaborator in a specific application",
+@ns.route('/evaluationByApp', doc = {"description": "Gets all the evaluations of a colaborator in a specific application",
 									"params": {"app_id": "The id of the application",
 												"colaborator_id": "The id of the colaborator"}})
 class evaluationByApp(Resource):
-	@api.expect(evaluationByApp)	
+	@ns.expect(evaluationByApp)	
 	# no caso esse deveria ser GET//
 	def post(self):
 		#Verifies the content of the request
@@ -139,11 +146,11 @@ class evaluationByApp(Resource):
 		else:
 			return None,200
 
-@api.route('/fullEvaluation', doc = {"description": "Gets all evaluations made on an specific colaborator",
+@ns.route('/fullEvaluation', doc = {"description": "Gets all evaluations made on an specific colaborator",
 									"params": {"colaborator_id": "the id of the colaborator"}})
 class fullEvaluation(Resource):
 
-	@api.expect(fullEvaluation)
+	@ns.expect(fullEvaluation)
 	def post(self):
 		#Verifies the content of the request
 		if request.content_type != "application/json":
@@ -173,12 +180,12 @@ class fullEvaluation(Resource):
 		else:
 			return None, 200
 
-@api.route("/ManageColaborators/GET_METHOD", doc = {"description": "updates the Colaborators depending on the method given \nThis route is the same as '/ManageColaborators' but require a GET method",
+@ns.route("/ManageColaborators/GET_METHOD", doc = {"description": "updates the Colaborators depending on the method given \nThis route is the same as '/ManageColaborators' but require a GET method",
 													"params": {"key": "the key of the application",
 																"colaborator_list": "A list of the colaboratos that you want to manage",
 																"status_list": "a list of the status of the colaborators that are being managed"}})
 class ManageColaborators_GET_METHOD(Resource):
-	@api.expect(ManageColaborators)
+	@ns.expect(ManageColaborators)
 	def post(self):
 		#Verifies the content of the request
 		if request.content_type != "application/json":
@@ -213,13 +220,13 @@ class ManageColaborators_GET_METHOD(Resource):
 					d[i][j]=colaborators[i][j]
 		return d, 226
 
-@api.route("/ManageColaborators",methods=["GET","POST","DELETE"], doc = {"description": "updates the Colaborators depending on the method given",
+@ns.route("/ManageColaborators",methods=["GET","POST","DELETE"], doc = {"description": "updates the Colaborators depending on the method given",
 																		"params": {"key": "the key of the application",
 																					"colaborator_list": "A list of the colaboratos that you want to manage",
 																					"status_list": "a list of the status of the colaborators that are being managed"}})
 class ManageColaborators(Resource):
 
-	@api.expect(ManageColaborators)
+	@ns.expect(ManageColaborators)
 	def post(self):
 		#Verifies the content of the request
 		if request.content_type != "application/json":
@@ -276,7 +283,7 @@ class ManageColaborators(Resource):
 
 	
 
-	@api.expect(ManageColaborators)
+	@ns.expect(ManageColaborators)
 	def delete(self):
 		#Verifies the content of the request
 		if request.content_type != "application/json":
